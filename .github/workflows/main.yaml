@@ -11,7 +11,7 @@ jobs:
       - name: checkout code
         uses: actions/checkout@v4 
       - name: Create a test file
-        run: touch test_file.txt 
+        run: touch test_file1.txt 
       - name: Add and commit
         run: |
           git config --global user.email "nicko.jefta@gmail.com"
