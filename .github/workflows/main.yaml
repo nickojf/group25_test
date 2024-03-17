@@ -11,12 +11,13 @@ jobs:
       - name: checkout code
         uses: actions/checkout@v4 
       - name: Create a test file
-        run: touch test_file1.txt 
+        run: touch test_file1.txt
+        
       - name: Add and commit
         run: |
           git config --global user.email "nicko.jefta@gmail.com"
           git config --global user.name "nickojf"
-          git add test_file.txt
+          git add test_file1.txt
           git commit -m "Test push commit" 
       - name: Push changes
         uses: ad-m/github-push-action@v0.8.0
