@@ -1,0 +1,6 @@
+"promotion_id","promotion_price","promotion_description","promo_expiration_date","category_id"
+"DC10",0.9,"Earth Day Eco-Savings","2024-03-15",1
+"DC20",0.8,"Cinco de Mayo Fiesta Sale","2024-03-15",3
+"DC25",0.75,"Flag Day Findings","2024-03-15",4
+"DC15",0.85,"Groundhog Day Deal","2024-03-15",8
+"DC30",0.7,"Loyalty Deal","2999-09-09",9

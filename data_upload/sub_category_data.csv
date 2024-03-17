@@ -1,0 +1,61 @@
+"sub_category_id","sub_category_name","category_id"
+1,"heater",1
+2,"Refridgerator",1
+3,"microwave",1
+4,"DVD",1
+5,"Mobile phone",1
+6,"tops",2
+7,"socks",2
+8,"shirts",2
+9,"ties",2
+10,"sarees",2
+11,"womens wear",2
+12,"carpets",3
+13,"flowers",3
+14,"bins",3
+15,"air freshners",3
+16,"pots",3
+17,"instant heater",3
+18,"mops",3
+19,"tables",4
+20,"beds",4
+21,"desks",4
+22,"sofas",4
+23,"bookshelves",4
+24,"cabinets",4
+25,"chairs",4
+26,"juicer, mixer",5
+27,"blender",5
+28,"toaster",5
+29,"coffee maker",5
+30,"food processor",5
+31,"microwave",5
+32,"camping gear",6
+33,"bicycles",6
+34,"fishing gear",6
+35,"hiking gear",6
+36,"fitness equipment",6
+37,"haircare products",7
+38,"makeup",7
+39,"beauty accessories",7
+40,"grooming tools",7
+41,"nail care",7
+42,"skincare products",7
+43,"perfumes",7
+44,"dolls",8
+45,"outdoor play equipment",8
+46,"puzzles",8
+47,"building blocks",8
+48,"action figures",8
+49,"tools",9
+50,"car accessories",9
+51,"maintenance supplies",9
+52,"interior accessories",9
+53,"exterior accessories",9
+54,"car electronics",9
+55,"car care products",9
+56,"beds and furniture",10
+57,"collars and leashes",10
+58,"pet food",10
+59,"carriers and travel products",10
+60,"pet grooming supplies",10
