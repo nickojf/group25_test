@@ -8,7 +8,8 @@ jobs:
   test-push:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 
+      - name: checkout code
+        uses: actions/checkout@v4 
       - name: Create a test file
         run: touch test_file.txt 
       - name: Add and commit
