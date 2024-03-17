@@ -19,6 +19,8 @@ jobs:
           git commit -m "Test push commit" 
       - name: Push changes
         uses: ad-m/github-push-action@v0.6.0 # Or find a well-maintained alternative
-        with:
-          github_token: ${{ secrets.NEW_REPO_TOKEN }} 
+        with: 
+          github_token: ${{ secrets.NEW_REPO_TOKEN }}
+          branch: main
+          suppress-node-deprecation-warning: true
           branch: main
