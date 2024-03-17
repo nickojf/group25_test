@@ -18,7 +18,7 @@ jobs:
           git add test_file.txt
           git commit -m "Test push commit" 
       - name: Push changes
-        uses: ad-m/github-push-action@v0.6.0 # Or find a well-maintained alternative
+        uses: ad-m/github-push-action@master
         with: 
           github_token: ${{ secrets.NEW_REPO_TOKEN }}
           branch: main
