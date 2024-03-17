@@ -8,7 +8,7 @@ jobs:
   test-push:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3 
+      - uses: actions/checkout@v4 
       - name: Create a test file
         run: touch test_file.txt 
       - name: Add and commit
@@ -22,5 +22,4 @@ jobs:
         with: 
           github_token: ${{ secrets.NEW_REPO_TOKEN }}
           branch: main
-          suppress-node-deprecation-warning: true
    
