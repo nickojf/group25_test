@@ -2,26 +2,19 @@ library(dplyr)
 library(RSQLite)
 
 # Connect to the database
-db <- RSQLite::dbConnect(SQLite(), "database/ecommerce.db")
+db <- RSQLite::dbConnect(SQLite(), "database/e-commerce.db")
 
-# Read the new address data
-new_address_data <- read.csv("data_upload/address_data2.csv") 
+# Find the matching CSV file
+csv_files <- list.files("data_upload", pattern = "^address.*\\.csv$", full.names = TRUE)
 
-# Data validation and update logic 
-existing_address_ids <- dbGetQuery(db, "SELECT address_id FROM address") %>% pull()
-
-# Filter for addresses with new address_id values
-new_addresses <- filter(new_address_data, !address_id %in% existing_address_ids)
-
-if (nrow(new_addresses) > 0) {
-  # Append only the new addresses to the database
-  dbWriteTable(db, "address", new_addresses, append = TRUE)
-  print("New addresses appended to the database")
+if (length(csv_files) == 0) {
+  print("No new address CSV files found.")
 } else {
-  print("No new addresses to append - all address_id values already exist.")
+  # Assuming you only expect one matching file at a time
+  new_address_data <- read.csv(csv_files[1]) 
 }
 
-# Read the complete address table
+# Read the complete address table 
 complete_address_table <- dbGetQuery(db, "SELECT * FROM address") 
 
 # Generate a timestamp
