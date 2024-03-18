@@ -26,6 +26,16 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           Rscript -e 'install.packages(c("ggplot2", "gridExtra", "lubridate", "RSQLite", "tidyverse", "dplyr"), repos = "http://cran.rstudio.com")'
+      
+      - name: Setup Git to push changes
+        run: |
+          git config --global user.email "nicko.jefta@gmail.com"
+          git config --global user.name "nickojf"
+
+      - name: Pull latest changes from the branch
+        run: |
+          git pull origin master    
+      
       - name: Execute R script
         run: |
           Rscript R/update_data.R
@@ -35,9 +45,11 @@ jobs:
           git config --global user.email "nicko.jefta@gmail.com"
           git config --global user.name "nickojf"
           git add --all visualization/
+     
       - name: Commit files
         run: |
           git commit -m "Add visualisation plot figure"
+      
       - name: Push changes
         uses: ad-m/github-push-action@v0.6.0
         with:
