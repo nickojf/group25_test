@@ -4,8 +4,15 @@ library(RSQLite)
 # Connect to the database
 db <- RSQLite::dbConnect(SQLite(), "database/e-commerce.db")
 
-# Read the new address data
-new_address_data <- read.csv("data_upload/address*.csv") # Adjust wildcard if needed
+# Find the matching CSV file
+csv_files <- list.files("data_upload", pattern = "^address.*\\.csv$", full.names = TRUE)
+
+if (length(csv_files) == 0) {
+  print("No new address CSV files found.")
+} else {
+  # Assuming you only expect one matching file 
+  new_address_data <- read.csv(csv_files[1])
+}
 
 # Data validation and update logic
 existing_address_ids <- dbGetQuery(db, "SELECT address_id FROM address") %>% pull()
