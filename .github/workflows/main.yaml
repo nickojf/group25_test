@@ -25,7 +25,7 @@ jobs:
       - name: Install packages
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          Rscript -e 'install.packages(c("ggplot2", "gridExtra", "RSQLite", "lubridate", "tidyverse", "dplyr"), repos = "http://cran.rstudio.com")'
+          Rscript -e 'install.packages(c("ggplot2", "gridExtra", "RSQLite", "tidyverse", "dplyr"), repos = "http://cran.rstudio.com")'
       - name: Execute R script
         run: |
           Rscript R/update_data.R

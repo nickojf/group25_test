@@ -1,7 +1,6 @@
 # Libraries
 library(gridExtra)
 library(RSQLite) 
-library(lubridate)
 library(ggplot2)
 library(dplyr)
 
@@ -53,7 +52,12 @@ viz1 <- ggplot(category_sales, aes(x = sales_amount, y = reorder(category_name, 
   theme_classic()
 
 # Save the plot
-ggsave(filename = paste0("visualization/sales_trend_by_category_", today(), ".png"), plot = viz1) 
+this_filename_date <- as.character(Sys.Date())
+# format the Sys.time() to show only hours and minutes 
+this_filename_time <- as.character(format(Sys.time(), format = "%H_%M"))
+ggsave(paste0("visualization/sales_trend_by_category_",
+              this_filename_date,"_",
+              this_filename_time,".png"))
 
 ## Geographical Sales 
 stats_sales_city <- sales_data %>% 
