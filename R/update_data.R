@@ -2,6 +2,7 @@
 library(tidyverse)
 library(gridExtra)
 library(RSQLite) 
+library(lubridate)
 
 # Connect to the database
 my_db <- RSQLite::dbConnect(RSQLite::SQLite(), "database/e-commerce.db") 
@@ -43,11 +44,14 @@ category_sales <- sales_data %>%
   group_by(category_name) %>% 
   summarise(sales_amount = sum(sales_amount))
 
-ggplot(category_sales, aes(x = sales_amount, y = reorder(category_name, sales_amount), fill = sales_amount)) + 
+viz1 <- ggplot(category_sales, aes(x = sales_amount, y = reorder(category_name, sales_amount), fill = sales_amount)) + 
   geom_col() + 
   geom_vline(xintercept = mean(category_sales$sales_amount), color = "red") + 
   labs(title = "Sales amount by Category") +
   theme_classic()
+
+# Save the plot
+ggsave(filename = paste0("visualization/sales_trend_by_category_", today(), ".png"), plot = viz1) 
 
 ## Geographical Sales 
 stats_sales_city <- sales_data %>% 
@@ -67,5 +71,37 @@ sales_data %>%
   labs(title = "Geographical Sales Heatmap", subtitle = "(Average sales by cities = 34,293 pounds)") +
   theme_classic()
 
+## Sales amount by reviews
+sales_data %>% 
+  group_by(category_name) %>% 
+  summarise(average_review_score = mean(review_score), sales_amount = sum(sales_amount)) %>% 
+  mutate(color = case_when(sales_amount > mean(category_sales$sales_amount) ~ "1. Over the average sales by category", 
+                           sales_amount < mean(category_sales$sales_amount) ~ "2. Below the average sales by category")) %>%
+  ggplot(aes(x = average_review_score, 
+             y = reorder(category_name, average_review_score), 
+             color = color, 
+             fill = color)) + 
+  geom_point(size = 4) +
+  geom_col(width = 0.01) + 
+  labs(title = "Sales amount by reviews", subtitle = "(Average sales by category = 75,444 pounds)", 
+       x = "Average review score", y = "Category") +
+  theme_classic()
+
+## Sales trend by date
+sales_data$order_date <- as.Date(sales_data$order_date)
+sales_by_date <- sales_data %>% 
+  group_by(order_date, category_name) %>% 
+  summarise(sales_amount = sum(sales_amount)) %>% 
+  mutate(year = year(order_date), 
+         month = month(order_date)) %>% 
+  mutate(year_month = sprintf("%04d-%02d", year, month))
+
+# sales trend
+ggplot(sales_by_date, aes(x = order_date, y = sales_amount)) + 
+  geom_line() +
+  labs(title = "Sales trend over time", subtitle = "(Average sales amount by date = 13,236 pounds)", x = "Time", y = "Total sales") +
+  geom_hline(yintercept = mean(sales_by_date$sales_amount), color = "red") + 
+  theme_classic()
+
 # Disconnect from the database
-dbDisconnect(db)
+dbDisconnect(my_db)
