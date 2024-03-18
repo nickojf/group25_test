@@ -1,4 +1,5 @@
 # Libraries
+library(gridExtra)
 library(RSQLite) 
 library(ggplot2)
 library(dplyr)
@@ -7,6 +8,11 @@ library(lubridate)
 
 # Connect to the database
 my_db <- RSQLite::dbConnect(RSQLite::SQLite(), "database/e-commerce.db") 
+
+# Ensure visualization directory exists
+if (!dir.exists("visualization")) {
+  dir.create("visualization")
+}
 
 # SQL Queries
 sales_query <- "SELECT customer.customer_id, city, country, quantity, shipping.shipment_status, 
@@ -41,9 +47,9 @@ sales_data <- sales_analysis %>%
 # Analysis
 
 ## Sales Trend by Category
-category_sales <- sales_data %>% 
-  group_by(category_name) %>% 
-  summarise(sales_amount = sum(sales_amount))
+category_sales <- sales_data %>%
+  group_by(category_name) %>%
+  summarise(sales_amount = sum(sales_amount), .groups = 'drop')
 
 viz1 <- ggplot(category_sales, aes(x = sales_amount, y = reorder(category_name, sales_amount), fill = sales_amount)) + 
   geom_col() + 
@@ -51,13 +57,13 @@ viz1 <- ggplot(category_sales, aes(x = sales_amount, y = reorder(category_name, 
   labs(title = "Sales amount by Category") +
   theme_classic()
 
-# Save the plot
+# Save the plot with a timestamp
 this_filename_date <- as.character(Sys.Date())
-# format the Sys.time() to show only hours and minutes 
-this_filename_time <- as.character(format(Sys.time(), format = "%H_%M"))
-ggsave(filename = paste0("visualization/sales_trend_by_category_", 
-                         this_filename_date, "_", this_filename_time, ".png"), 
-       plot = viz1, device = "png")
+this_filename_time <- format(Sys.time(), format = "%H_%M")
+ggsave(filename = paste0("visualization/sales_trend_by_category_", this_filename_date, "_", this_filename_time, ".png"), plot = viz1, device = "png", width = 7, height = 7)
+
+
+
 
 ## Geographical Sales 
 stats_sales_city <- sales_data %>% 
