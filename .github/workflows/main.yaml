@@ -1,20 +1,22 @@
-name: Address Data Update Workflow 
+name: Address Data Update Workflow
 
 on:
   push:
     paths:
       - 'data_upload/address*.csv'
-      
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      
       - name: Setup R environment
         uses: r-lib/actions/setup-r@v2
         with:
           r-version: '4.3.3'
+
       - name: Cache R packages
         uses: actions/cache@v2
         with:
@@ -22,35 +24,37 @@ jobs:
           key: ${{ runner.os }}-r-${{ hashFiles('**/lockfile') }}
           restore-keys: |
             ${{ runner.os }}-r-
+
       - name: Install packages
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           Rscript -e 'install.packages(c("ggplot2", "gridExtra", "lubridate", "RSQLite", "tidyverse", "dplyr"), repos = "http://cran.rstudio.com")'
-      
+
       - name: Setup Git to push changes
         run: |
           git config --global user.email "nicko.jefta@gmail.com"
           git config --global user.name "nickojf"
+      
+      # Configure Git to use the merge strategy for pulls
+      - name: Configure Git for merge strategy
+        run: git config --global pull.rebase false
 
       - name: Pull latest changes from the branch
-        run: |
-          git pull origin master    
+        run: git pull origin master
       
       - name: Execute R script
         run: |
           Rscript R/update_data.R
-          
+
       - name: Add files
         run: |
-          git config --global user.email "nicko.jefta@gmail.com"
-          git config --global user.name "nickojf"
           git add --all visualization/
-     
+
       - name: Commit files
         run: |
-          git commit -m "Add visualisation plot figure"
-      
+          git commit -m "Add visualisation plot figure" || echo "No changes to commit"
+
       - name: Push changes
         uses: ad-m/github-push-action@v0.6.0
         with:
-          GITHUB_TOKEN: ${{ secrets.NEW_REPO_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.NEW_REPO_TOKEN }}
