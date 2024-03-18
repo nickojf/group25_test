@@ -48,7 +48,7 @@ jobs:
           git commit -m "Add visualisation plot figure" || echo "No changes to commit"
 
       - name: Pull changes from remote
-        run: git pull --rebase origin master
+        run: git pull --rebase origin main
 
       - name: Push changes
         uses: ad-m/github-push-action@v0.6.0
