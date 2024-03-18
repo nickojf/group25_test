@@ -35,12 +35,11 @@ jobs:
           git config --global user.email "nicko.jefta@gmail.com"
           git config --global user.name "nickojf"
       
-      # Configure Git to use the merge strategy for pulls
       - name: Configure Git for merge strategy
         run: git config --global pull.rebase false
 
       - name: Pull latest changes from the branch
-        run: git pull origin master
+        run: git pull origin master --allow-unrelated-histories
       
       - name: Execute R script
         run: |
