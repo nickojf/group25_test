@@ -4,17 +4,6 @@ on:
   push:
     paths:
       - 'data_upload/address*.csv'
-      - 'data_upload/category*.csv'
-      - 'data_upload/customer*.csv'
-      - 'data_upload/order*.csv'
-      - 'data_upload/product*.csv'
-      - 'data_upload/promotion*.csv'
-      - 'data_upload/provide*.csv'
-      - 'data_upload/review*.csv'
-      - 'data_upload/seller*.csv'
-      - 'data_upload/shipping*.csv'
-      - 'data_upload/sub_category*.csv'
-      - 'data_upload/transaction_billing*.csv'
 
 jobs:
   build:
