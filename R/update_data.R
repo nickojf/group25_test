@@ -1,5 +1,4 @@
 # Libraries
-library(tidyverse)
 library(gridExtra)
 library(RSQLite) 
 library(lubridate)
@@ -106,3 +105,4 @@ ggplot(sales_by_date, aes(x = order_date, y = sales_amount)) +
 
 # Disconnect from the database
 dbDisconnect(my_db)
+
