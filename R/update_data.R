@@ -3,6 +3,7 @@ library(tidyverse)
 library(gridExtra)
 library(RSQLite) 
 library(lubridate)
+library(renv)
 
 # Connect to the database
 my_db <- RSQLite::dbConnect(RSQLite::SQLite(), "database/e-commerce.db") 
