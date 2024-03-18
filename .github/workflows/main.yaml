@@ -1,27 +1,25 @@
-name: Push Test Workflow (New Repo) 
+You're absolutely right! I apologize for overlooking the token in the previous version. Let's complete the YAML file by including authentication using your GitHub secret.
 
-on: 
-  push: 
-    branches: [ main ]
+Here's the revised and complete YAML file:
+
+YAML
+name: Address Data Update Workflow 
+
+on:
+  push:
+    paths:
+      - 'data_upload/address*.csv' 
 
 jobs:
-  test-push:
+  update-data:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout code
-        uses: actions/checkout@v4 
-      - name: Create a test file
-        run: touch test_file1.txt
-        
-      - name: Add and commit
-        run: |
-          git config --global user.email "nicko.jefta@gmail.com"
-          git config --global user.name "nickojf"
-          git add test_file1.txt
-          git commit -m "Test push commit" 
-      - name: Push changes
-        uses: ad-m/github-push-action@v0.8.0
-        with: 
-          github_token: ${{ secrets.NEW_REPO_TOKEN }}
-          branch: main
-   
+      - uses: actions/checkout@v3
+      - uses: r-lib/actions/setup-r@v2 
+      - name: Install R Dependencies (if needed)
+        if: needs.install-deps ${{needs.install-deps}}
+        run: Rscript -e 'install.packages(c("dplyr", "RSQLite"))'
+      - name: Run Data Update Script
+        run: Rscript R/update_data.R
+        env:
+          GITHUB_TOKEN: ${{ secrets.NEW_REPO_TOKEN }} 
