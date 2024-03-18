@@ -14,7 +14,7 @@ jobs:
       - name: Setup R environment
         uses: r-lib/actions/setup-r@v2
         with:
-          r-version: '4.2.0'
+          r-version: '4.3.3'
       - name: Cache R packages
         uses: actions/cache@v2
         with:
@@ -25,7 +25,7 @@ jobs:
       - name: Install packages
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          Rscript -e 'install.packages(c("ggplot2", "gridExtra", "RSQLite", "tidyverse", "dplyr"), repos = "http://cran.rstudio.com")'
+          Rscript -e 'install.packages(c("ggplot2", "RSQLite", "tidyverse", "dplyr"), repos = "http://cran.rstudio.com")'
       - name: Execute R script
         run: |
           Rscript R/update_data.R
@@ -34,7 +34,7 @@ jobs:
         run: |
           git config --global user.email "nicko.jefta@gmail.com"
           git config --global user.name "nickojf"
-          git add --all visualizations/
+          git add --all visualization/
       - name: Commit files
         run: |
           git commit -m "Add visualisation plot figure"
