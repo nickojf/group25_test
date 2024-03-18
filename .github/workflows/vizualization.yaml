@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - 'data_upload/address*.csv'
-      - 'data_upload/category*.csv'
       - 'data_upload/customer*.csv'
       - 'data_upload/order*.csv'
       - 'data_upload/product*.csv'
