@@ -15,26 +15,31 @@ if (!dir.exists("visualization")) {
 }
 
 # SQL Queries
-sales_query <- "SELECT customer.customer_id, city, country, quantity, shipping.shipment_status, 
-           price, brand, subcategory.subcategory_name, review_score, category.category_name, 
-           product_name, product.product_id, promo_price, order_date
+sales_query <- "SELECT customer.customer_id, city, country, quantity, 
+        shipping.shipment_status, price, brand, subcategory.subcategory_name, 
+        review_score, category.category_name, product_name, product.product_id, 
+        promo_price, order_date
         FROM customer
         INNER JOIN address ON customer.customer_id = address.customer_id
-        INNER JOIN `order` ON customer.customer_id = `order`.customer_id
+        INNER JOIN `order`ON customer.customer_id = `order`.customer_id
         LEFT JOIN product ON product.product_id = `order`.product_id
         LEFT JOIN category ON category.category_id = product.category_id
-        LEFT JOIN transaction_billing ON `order`.order_id = transaction_billing.order_id 
+        LEFT JOIN transaction_billing ON `order`.order_id = transaction_billing.order_id
         LEFT JOIN shipping ON shipping.billing_id = transaction_billing.billing_id
         LEFT JOIN subcategory ON subcategory.category_id = category.category_id
         LEFT JOIN review ON review.customer_id = customer.customer_id
         LEFT JOIN promotion ON promotion.category_id = category.category_id"
 
 seller_query <- "SELECT category_name, product_name, seller.seller_id, review_score
-                 FROM product
-                 LEFT JOIN provide ON product.product_id = provide.product_id
-                 LEFT JOIN seller ON provide.seller_id = seller.seller_id
-                 LEFT JOIN category ON product.category_id = category.category_id
-                 LEFT JOIN review ON product.product_id = review.product_w_category$product_id"
+        FROM product
+        LEFT JOIN provide
+        ON product.product_id = provide.product_id
+        LEFT JOIN seller
+        ON provide.seller_id = seller.seller_id
+        LEFT JOIN category
+        ON product.category_id = category.category_id
+        LEFT JOIN review
+        ON product.product_id = review.product_w_category$product_id"
 
 # Data Extraction
 sales_analysis <- dbGetQuery(my_db, sales_query)
@@ -42,25 +47,26 @@ seller <- dbGetQuery(my_db, seller_query)
 
 # Sales Data Generation
 sales_data <- sales_analysis %>% 
-  mutate(sales_amount = price * quantity * ifelse(is.na(promo_price), 1, promo_price)) 
+mutate(sales_amount = price * quantity * ifelse(is.na(promo_price), 1, promo_price))
 
 # Analysis
 
 ## Sales Trend by Category
-category_sales <- sales_data %>%
-  group_by(category_name) %>%
-  summarise(sales_amount = sum(sales_amount), .groups = 'drop')
+category_sales <- sales_data %>% group_by(category_name) %>% summarise(sales_amount = sum(sales_amount))
 
-viz1 <- ggplot(category_sales, aes(x = sales_amount, y = reorder(category_name, sales_amount), fill = sales_amount)) + 
+viz1 <- ggplot(category_sales, aes(x = sales_amount, 
+                                   y = reorder(category_name, sales_amount), 
+                                   fill = sales_amount)) + 
   geom_col() + 
-  geom_vline(xintercept = mean(category_sales$sales_amount), color = "red") + 
-  labs(title = "Sales amount by Category") +
+  geom_vline(aes(xintercept = mean(category_sales$sales_amount), color = "mean"), linetype = "dashed") +
+  scale_color_manual(name = " ", values = c(mean = "red")) +
+  labs(title = "Sales amount by Category", x = "Sales amount", y = "Category") +
   theme_classic()
 
 # Save the plot with a timestamp
 this_filename_date <- as.character(Sys.Date())
 this_filename_time <- format(Sys.time(), format = "%H_%M")
-ggsave(filename = paste0("visualization/sales_trend_by_category_", this_filename_date, "_", this_filename_time, ".png"), plot = viz1, device = "png", width = 7, height = 7)
+ggsave(filename = paste0("visualization/sales_trend_by_category_", this_filename_date, "_", this_filename_time, ".png"), plot = viz1, device = "png", width = 10, height = 7)
 
 
 
@@ -71,20 +77,35 @@ stats_sales_city <- sales_data %>%
   summarise(sales_amount = sum(sales_amount)) %>% 
   summarise(mean = mean(sales_amount), sd = sd(sales_amount))
 
-sales_data %>% 
-  group_by(country, city) %>% 
-  summarise(sales_amount = sum(sales_amount)) %>% 
-  mutate(color_condition = case_when(sales_amount > stats_sales_city$mean ~ "1. over the average",
-                                     sales_amount > (stats_sales_city$mean - stats_sales_city$sd) ~ "2. slightly below the average", 
-                                     sales_amount > (stats_sales_city$mean - 2 * stats_sales_city$sd) ~ "3. below the average")) %>%
+viz2 <- sales_data %>% group_by(country, city) %>% summarise(sales_amount = sum(sales_amount)) %>% 
+  mutate(color_condition = case_when(sales_amount > stats_sales_city$mean ~ "1. Over the average",
+                                     sales_amount > (stats_sales_city$mean - stats_sales_city$sd) ~ "2. Slightly below the average", 
+                                     sales_amount > (stats_sales_city$mean - 2 * stats_sales_city$sd) ~ "3. Below the average")) %>%
   ggplot(aes(x = country, y = city, fill = color_condition)) +
   geom_tile() +
-  scale_fill_manual(values = c("1. over the average" = "steelblue1", "2. slightly below the average" = "lightcyan3", "3. below the average" = "coral1")) +
-  labs(title = "Geographical Sales Heatmap", subtitle = "(Average sales by cities = 34,293 pounds)") +
+  scale_fill_manual(values = c("1. Over the average" = "steelblue1", "2. Slightly below the average" = "lightcyan3", "3. Below the average" = "coral1")) +
+  labs(title = "Geographical Sales Heatmap") +
   theme_classic()
 
+# Save the plot with a timestamp
+this_filename_date <- as.character(Sys.Date())
+this_filename_time <- format(Sys.time(), format = "%H_%M")
+ggsave(filename = paste0("visualization/geographical_sales_heatmap_", this_filename_date, "_", this_filename_time, ".png"), plot = viz2, device = "png", width = 10, height = 7)
+
+
+# sales amount by country
+viz3 <- sales_data %>% group_by(country) %>% summarise(Total_sales_amount = sum(sales_amount)) %>% 
+  ggplot(aes(x = country, y = Total_sales_amount, fill = Total_sales_amount)) + geom_col() + labs(title = "Sales by country") + 
+  theme_classic()
+
+# Save the plot with a timestamp
+this_filename_date <- as.character(Sys.Date())
+this_filename_time <- format(Sys.time(), format = "%H_%M")
+ggsave(filename = paste0("visualization/sales_by_country_", this_filename_date, "_", this_filename_time, ".png"), plot = viz3, device = "png", width = 10, height = 7)
+
+
 ## Sales amount by reviews
-sales_data %>% 
+viz4 <- sales_data %>% 
   group_by(category_name) %>% 
   summarise(average_review_score = mean(review_score), sales_amount = sum(sales_amount)) %>% 
   mutate(color = case_when(sales_amount > mean(category_sales$sales_amount) ~ "1. Over the average sales by category", 
@@ -95,9 +116,15 @@ sales_data %>%
              fill = color)) + 
   geom_point(size = 4) +
   geom_col(width = 0.01) + 
-  labs(title = "Sales amount by reviews", subtitle = "(Average sales by category = 75,444 pounds)", 
+  labs(title = "Category by reviews", subtitle = "(Average sales by category = 75,444 pounds)", 
        x = "Average review score", y = "Category") +
   theme_classic()
+
+# Save the plot with a timestamp
+this_filename_date <- as.character(Sys.Date())
+this_filename_time <- format(Sys.time(), format = "%H_%M")
+ggsave(filename = paste0("visualization/category_by_review_", this_filename_date, "_", this_filename_time, ".png"), plot = viz4, device = "png", width = 10, height = 7)
+
 
 ## Sales trend by date
 sales_data$order_date <- as.Date(sales_data$order_date)
@@ -109,11 +136,31 @@ sales_by_date <- sales_data %>%
   mutate(year_month = sprintf("%04d-%02d", year, month))
 
 # sales trend
-ggplot(sales_by_date, aes(x = order_date, y = sales_amount)) + 
-  geom_line() +
+viz5 <- ggplot(sales_by_date, aes(x = order_date, y = sales_amount)) + geom_line() +
+  geom_smooth(method = lm, alpha = 0.3, aes(color = "Trend line")) + 
   labs(title = "Sales trend over time", subtitle = "(Average sales amount by date = 13,236 pounds)", x = "Time", y = "Total sales") +
-  geom_hline(yintercept = mean(sales_by_date$sales_amount), color = "red") + 
+  scale_colour_manual(name=" ", values=c("blue")) +
+  geom_hline(aes(yintercept = mean(sales_by_date$sales_amount), linetype = "Average sales by date"), color = "red") + 
+  scale_linetype_manual(values = 2) +
+  labs(linetype = NULL) +
   theme_classic()
+
+# Save the plot with a timestamp
+this_filename_date <- as.character(Sys.Date())
+this_filename_time <- format(Sys.time(), format = "%H_%M")
+ggsave(filename = paste0("visualization/sales_trend_over_time_", this_filename_date, "_", this_filename_time, ".png"), plot = viz5, device = "png", width = 10, height = 7)
+
+
+viz6 <-sales_by_date %>% group_by(year_month) %>% ggplot(aes(x = sales_amount, y = year_month)) + 
+  geom_col() +
+  labs(title = "Total sales by year and month", x = "Total sales", y = "Year and Month") +
+  theme_classic()
+
+# Save the plot with a timestamp
+this_filename_date <- as.character(Sys.Date())
+this_filename_time <- format(Sys.time(), format = "%H_%M")
+ggsave(filename = paste0("visualization/total_sales_by_year_and_month_", this_filename_date, "_", this_filename_time, ".png"), plot = viz6, device = "png", width = 10, height = 7)
+
 
 # Disconnect from the database
 dbDisconnect(my_db)
