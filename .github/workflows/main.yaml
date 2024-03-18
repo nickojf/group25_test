@@ -3,17 +3,15 @@ name: Address Data Update Workflow
 on:
   push:
     paths:
-      - 'data_upload/address*.csv' 
+      - 'data_upload/address*.csv'
 
 jobs:
   update-data:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: r-lib/actions/setup-r@v2 
-      - name: Install R Dependencies (if needed)
-        if: needs.install-deps ${{needs.install-deps}}
-        run: Rscript -e 'install.packages(c("tidyverse","gridExtra","RSQLite","lubridate"))'
+      - uses: r-lib/actions/setup-r@v2
+      - uses: r-lib/actions/setup-renv@v2         
       - name: Run Data Update Script
         run: Rscript R/update_data.R
         env:
