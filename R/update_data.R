@@ -2,6 +2,7 @@
 library(gridExtra)
 library(RSQLite) 
 library(lubridate)
+library(ggplot2)
 
 
 # Connect to the database
