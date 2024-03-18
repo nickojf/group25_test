@@ -30,17 +30,6 @@ jobs:
         run: |
           Rscript -e 'install.packages(c("ggplot2", "gridExtra", "lubridate", "RSQLite", "tidyverse", "dplyr"), repos = "http://cran.rstudio.com")'
 
-      - name: Setup Git to push changes
-        run: |
-          git config --global user.email "nicko.jefta@gmail.com"
-          git config --global user.name "nickojf"
-      
-      - name: Configure Git for merge strategy
-        run: git config --global pull.rebase false
-
-      - name: Pull latest changes from the branch
-        run: git pull origin master --allow-unrelated-histories
-      
       - name: Execute R script
         run: |
           Rscript R/update_data.R
@@ -51,7 +40,7 @@ jobs:
 
       - name: Commit files
         run: |
-          git commit -m "Add visualisation plot figure" || echo "No changes to commit"
+          git commit -m "Add visualisation plot figure"
 
       - name: Push changes
         uses: ad-m/github-push-action@v0.6.0
