@@ -1,0 +1,102 @@
+address_id,city,country,postal_code,detailed_address,address_owner_id
+1,Coventry,Wales,LO5 6VL,156 Hill Close,1
+2,Sunderland,Scotland,BG3 4SC,134 Valley Lane,2
+3,Sheffield,Scotland,KF9 8FY,137 Pine Close,3
+4,Manchester,Scotland,VD2 0TV,161 Holly Close,4
+5,Cardiff,Northern Ireland,UO6 7KP,116 Garden Close,5
+6,Newcastle,Scotland,RE1 3UX,46 Maple Close,6
+7,Portsmouth,Scotland,QI4 8KC,64 View Terrace,7
+8,Belfast,Scotland,SK0 5QT,19 Ash Terrace,8
+9,Glasgow,Wales,ZZ1 2CH,98 School Street,9
+10,Swansea,Northern Ireland,SG2 8PT,129 Elm Drive,10
+11,Sheffield,Northern Ireland,FP5 0XM,180 Ash Place,11
+12,Portsmouth,Scotland,GN7 8OT,68 Cedar Street,12
+13,Reading,England,UE1 2WX,90 Ash Way,13
+14,Glasgow,Scotland,KM8 7BN,122 Garden Place,14
+15,Sunderland,Scotland,WY7 9JV,75 Chestnut Gardens,15
+16,Reading,Scotland,WR7 0UD,133 Mill Gardens,16
+17,Reading,Wales,YN1 8SG,19 Hazel Terrace,17
+18,Cambridge,Northern Ireland,OI3 8BY,35 View Terrace,18
+19,Manchester,Scotland,JA6 3EQ,161 Rose Close,19
+20,Oxford,Wales,NW5 3EA,197 Spring Close,20
+21,Liverpool,Scotland,AB3 2NC,61 Pine Street,21
+22,Cardiff,Wales,EU2 5HK,151 Church Gardens,22
+23,Cambridge,Northern Ireland,TZ0 8PU,169 Oak Place,23
+24,Sunderland,England,MB2 5FL,191 Green Terrace,24
+25,Birmingham,Wales,QT8 5LT,49 Sunset Lane,25
+26,Sheffield,Wales,DK8 6SV,85 Orchard Terrace,26
+27,Leicester,Wales,FB7 5XY,69 River Way,27
+28,Belfast,England,KB1 5ON,64 Elm Street,28
+29,Liverpool,Wales,FB1 0EM,76 Spring Avenue,29
+30,Southampton,Wales,RH9 0GB,2 Pine Lane,30
+31,Brighton,Scotland,CB4 9QO,118 Ash Drive,31
+32,Coventry,Scotland,WT4 7DH,18 Sunset Close,32
+33,Cardiff,Scotland,VZ1 2PE,4 Elm Road,33
+34,Leeds,Wales,CC5 6CL,106 Meadow Terrace,34
+35,Liverpool,Northern Ireland,UU2 6JV,111 Hill Terrace,35
+36,Cambridge,Wales,AU2 3GA,87 River Avenue,36
+37,Cambridge,Wales,SQ6 8WI,118 Bridge Terrace,37
+38,Cardiff,Scotland,ME2 5QO,72 Water Gardens,38
+39,York,England,AL8 8JE,193 Sunset Way,39
+40,Southampton,Scotland,MK0 5LQ,120 Cedar Road,40
+41,Liverpool,Northern Ireland,MS8 9NR,11 Forest Street,41
+42,Southampton,Northern Ireland,BJ4 5SM,79 Grove Place,42
+43,Bristol,Northern Ireland,UV7 4JA,185 Water Lane,43
+44,Reading,England,GJ6 9AZ,56 Chestnut Drive,44
+45,Edinburgh,Wales,WW4 7CK,106 Maple Drive,45
+46,Glasgow,Wales,HD6 4ST,15 Fern Place,46
+47,Oxford,Northern Ireland,SC0 0WP,180 Meadow Avenue,47
+48,Brighton,Northern Ireland,AZ2 5TW,108 Forest Gardens,48
+49,Leeds,Scotland,AI7 4PU,189 Rose Lane,49
+50,Newcastle,Northern Ireland,XQ2 8AK,89 Garden Lane,50
+51,London,England,HT8 8WQ,36 Holly Way,51
+52,Reading,Wales,VI3 8YE,131 Grove Gardens,52
+53,Reading,England,MS6 3IU,7 Green Avenue,53
+54,Bristol,Wales,QQ9 8ZI,68 Park Close,54
+55,Southampton,Scotland,ZK1 1AZ,120 Church Place,55
+56,Coventry,Scotland,DN1 2DB,53 Forest Lane,56
+57,Cambridge,England,FM6 6PI,101 Willow Way,57
+58,Coventry,Wales,JZ4 9NU,24 Spring Drive,58
+59,Nottingham,Scotland,KF8 5BS,68 Forest Place,59
+60,Swansea,Northern Ireland,QD9 5YH,67 Chestnut Avenue,60
+61,Bristol,England,ZN0 0GE,11 Maple Lane,61
+62,Belfast,Wales,EQ4 9BO,74 Hazel Close,62
+63,Oxford,Northern Ireland,ZR7 1MM,93 Holly Avenue,63
+64,Portsmouth,Northern Ireland,KI0 0XA,133 Valley Drive,64
+65,Portsmouth,Wales,VD9 8FN,88 Meadow Terrace,65
+66,Liverpool,Wales,FX2 5GO,160 Pine Close,66
+67,Nottingham,Northern Ireland,IJ0 3MO,89 Cedar Terrace,67
+68,Leicester,England,UF6 8DD,11 Church Way,68
+69,Portsmouth,Northern Ireland,AK7 0KR,74 Park Terrace,69
+70,Newcastle,Scotland,MK3 2QX,188 Garden Close,70
+71,Leicester,Scotland,IW3 6VR,31 Fern Street,71
+72,Edinburgh,Northern Ireland,LN2 2UD,74 Water Way,72
+73,Birmingham,England,ZU0 3GI,173 Green Gardens,73
+74,Leeds,Northern Ireland,FI3 1KQ,59 Mill Way,74
+75,Glasgow,Northern Ireland,ZP1 8VG,24 Hill Gardens,75
+76,Portsmouth,Scotland,TJ5 1VA,35 Elm Avenue,76
+77,Sunderland,Wales,TN5 8RV,10 View Place,77
+78,Reading,Northern Ireland,XE9 3LF,64 Fern Place,78
+79,Swansea,Northern Ireland,HC3 3AH,72 Forest Gardens,79
+80,Portsmouth,Northern Ireland,FZ4 6XY,172 Forest Avenue,80
+81,Reading,Wales,HS0 0OF,42 Hazel Drive,81
+82,Sheffield,England,UC8 0MU,160 Maple Place,82
+83,Reading,Northern Ireland,GH3 9KC,167 Hill Lane,83
+84,York,Northern Ireland,CD7 5HJ,135 Sunset Lane,84
+85,Manchester,Northern Ireland,ZZ1 7GM,166 Elm Road,85
+86,Oxford,Scotland,DX4 8JD,17 Ivy Close,86
+87,Nottingham,England,OK7 7BG,128 Pine Street,87
+88,Brighton,Scotland,LS0 9ZM,161 High Lane,88
+89,Reading,Wales,CI8 0MT,109 Maple Close,89
+90,Sheffield,Northern Ireland,RI3 9RB,130 Hazel Road,90
+91,Manchester,Wales,VF3 8SJ,79 Brook Place,91
+92,Sheffield,England,MH3 7WU,111 Church Drive,92
+93,Liverpool,Wales,EY0 3DH,66 Ash Street,93
+94,Manchester,Northern Ireland,IM5 0DP,70 School Gardens,94
+95,York,Scotland,AO6 3OR,110 Grove Place,95
+96,Portsmouth,England,QP9 2IP,59 Ash Place,96
+97,Coventry,England,IX0 8ZT,175 Forest Close,97
+98,Southampton,Scotland,QH9 3BL,9 River Road,98
+99,Glasgow,Wales,KE3 3BI,23 Mill Terrace,99
+100,Oxford,England,WY9 7TA,25 Rose Close,100
+101,Oxford,England,WY9 7TA,25 Rose Close,100
