@@ -36,6 +36,8 @@ jobs:
 
       - name: Add files
         run: |
+          git config --global user.email "nicko.jefta@gmail.com"
+          git config --global user.name "nickojf"
           git add --all visualization/
 
       - name: Commit files
