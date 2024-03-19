@@ -170,11 +170,20 @@ for (entity_folder in subdirectories) {
   for (csv_file in csv_files) {
     # Read the CSV file into a dataframe
     df <- read_csv(csv_file, col_types = cols(
-      card_number = col_character() # Ensure card_number is read as character
+      .default = col_guess(), # Guess the type for columns not explicitly mentioned
+      card_number = col_character() # Specify card_number as character to avoid type mismatches
     ))
     # Convert the 'card_number' column to character to ensure consistency
     # Note: This line is redundant if 'col_types' is used as above but is necessary if automatic type detection is relied upon
-    df$card_number <- as.character(df$card_number)
+    
+    # Before binding rows, ensure card_number is character and exists
+    if("card_number" %in% names(df)) {
+      df$card_number <- as.character(df$card_number)
+    } else {
+      # Optionally, you can add the column if it doesn't exist
+      df$card_number <- NA_character_
+    }
+    
     # Merge the dataframe with the existing merged dataframe
     if (is.null(merged_df)) {
       merged_df <- df
