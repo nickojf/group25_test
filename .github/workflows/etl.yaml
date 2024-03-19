@@ -32,8 +32,8 @@ jobs:
           Rscript R/transformation1.R
       - name: Add users
         run: |
-          git config --global user.email "aishwarya23.rao@gmail.com"
-          git config --global user.name "aishwaryaa-rao"
+          git config --global user.email "nicko.jefta@gmail.com"
+          git config --global user.name "nickojf"
           git add --all figures/
           git add script/e-commerce.db
       - name: Commit files

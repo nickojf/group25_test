@@ -1,13 +1,620 @@
-# Libraries
-library(gridExtra)
-library(RSQLite) 
-library(ggplot2)
-library(dplyr)
+# R libraries loading
+library(stringi)
+library(readr)
+library(RSQLite)
+library(DBI)
 library(lubridate)
+library(dplyr)
+library(chron)
+library(tidyr)
+library(gridExtra)
+library(ggplot2)
+
+# DB connection
+db_file_path <- "script/e-commerce.db"
+my_db <- RSQLite::dbConnect(RSQLite::SQLite(),db_file_path)
+
+# Create Tables in DB
+
+# Customer
+dbExecute(my_db, "
+CREATE TABLE IF NOT EXISTS customer(
+  customer_id INT PRIMARY KEY,
+  email VARCHAR (100) NOT NULL,
+  first_name VARCHAR (100) NOT NULL,
+  last_name VARCHAR (100) NOT NULL,
+  contact_number INT (11) NOT NULL,
+  card_number INT(16)
+  );
+")
+
+# Category
+dbExecute(my_db, "
+CREATE TABLE IF NOT EXISTS category (
+  category_id INT PRIMARY KEY NOT NULL,
+  category_name VARCHAR (50) NOT NULL,
+  category_description VARCHAR (50) NOT NULL
+);
+")
+
+# Product
+dbExecute(my_db, "
+CREATE TABLE IF NOT EXISTS product (
+  product_id VARCHAR(50) PRIMARY KEY NOT NULL,
+  category_id INT,
+  product_name VARCHAR(50),
+  product_description TEXT,
+  registration_date DATE,
+  price FLOAT,
+  brand VARCHAR(50),
+  FOREIGN KEY (category_id) REFERENCES category(category_id)
+);
+")
 
 
-# Connection to the database
-my_db <- RSQLite::dbConnect(RSQLite::SQLite(), "database/e-commerce.db") 
+# Promotion
+dbExecute(my_db, "
+CREATE TABLE IF NOT EXISTS promotion (
+  promotion_id VARCHAR(50) PRIMARY KEY NOT NULL,
+  category_id INT,
+  promotion_price FLOAT,
+  promotion_description TEXT,
+  promo_expiration_date DATE,
+  FOREIGN KEY (category_id) REFERENCES category(category_id)
+);
+")
+
+# Seller
+dbExecute(my_db, "
+CREATE TABLE IF NOT EXISTS seller (
+    seller_id INT PRIMARY KEY NOT NULL,
+    seller_name VARCHAR(100) NOT NULL,
+    contact INT NOT NULL,
+    email VARCHAR(255) NOT NULL
+    );
+")
+
+# Provide
+dbExecute(my_db, "
+CREATE TABLE IF NOT EXISTS provide (
+    provide_id VARCHAR(50) PRIMARY KEY NOT NULL,
+    seller_id VARCHAR(50) REFERENCES seller(seller_id),
+    product_id VARCHAR(50) REFERENCES product(product_id)
+    );
+")
+
+# Order
+dbExecute(my_db, "
+CREATE TABLE IF NOT EXISTS `order` (
+    order_id VARCHAR(50) PRIMARY KEY,
+    order_date DATE,
+    quantity INT,
+    product_id VARCHAR(50),
+    customer_id INT,
+    FOREIGN KEY (product_id) REFERENCES product(product_id), 
+    FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
+);
+")
+
+# Shipment
+dbExecute(my_db, "
+CREATE TABLE IF NOT EXISTS shipping(
+    shipping_id INT PRIMARY KEY,
+    billing_id INT,
+    shipment_status VARCHAR(50),
+    FOREIGN KEY (billing_id) REFERENCES transaction_billing(billing_id)
+);
+")
+
+# Review
+dbExecute(my_db, "
+CREATE TABLE IF NOT EXISTS review (
+  review_id VARCHAR(50) PRIMARY KEY NOT NULL,
+  customer_id INT,
+  product_id VARCHAR(50),
+  review_score INT(5),
+  FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
+  FOREIGN KEY (product_id) REFERENCES product(product_id)
+);
+")
+
+# Address
+dbExecute(my_db, "
+CREATE TABLE IF NOT EXISTS address (
+  address_id VARCHAR(50) PRIMARY KEY NOT NULL,
+  city VARCHAR (50) NOT NULL,
+  country VARCHAR (50) NOT NULL,
+  postal_code VARCHAR (50) NOT NULL,
+  detailed_address VARCHAR (50) NOT NULL,
+  customer_id INT,
+  FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
+);
+")
+
+# Sub-category
+dbExecute(my_db, "
+CREATE TABLE IF NOT EXISTS subcategory (
+    sub_category_id VARCHAR(50) PRIMARY KEY NOT NULL,
+    sub_category_name VARCHAR(50),
+    category_id VARCHAR(50),
+    FOREIGN KEY (category_id) REFERENCES category(category_id)
+);
+")
+
+# Transaction billing
+dbExecute(my_db, "
+CREATE TABLE IF NOT EXISTS transaction_billing (
+  billing_id INT PRIMARY KEY NOT NULL,
+  order_id INT,
+  FOREIGN KEY (order_id) REFERENCES `order`(order_id)
+);
+")
+
+# insert data into dataframes
+
+# Define the path to the data_upload folder
+data_upload_path <- "data_upload"
+
+# Get a list of all subdirectories within data_upload
+subdirectories <- list.dirs(data_upload_path, full.names = TRUE, recursive = FALSE)
+
+# Iterate through each subdirectory
+for (entity_folder in subdirectories) {
+  # Extract the entity name from the directory path
+  entity_name <- basename(entity_folder)
+  # Get a list of all CSV files within the entity folder
+  csv_files <- list.files(entity_folder, pattern = "*.csv", full.names = TRUE)
+  # Initialize an empty dataframe to store the merged data
+  merged_df <- NULL
+  # Iterate through each CSV file
+  for (csv_file in csv_files) {
+    # Read the CSV file into a dataframe
+    df <- read_csv(csv_file)
+    # Merge the dataframe with the existing merged dataframe
+    if (is.null(merged_df)) {
+      merged_df <- df
+    } else {
+      merged_df <- bind_rows(merged_df, df)
+    }
+  }
+  # Assign the merged dataframe to a variable with the entity name
+  assign(paste0("ecom_", entity_name), merged_df, envir = .GlobalEnv)
+}
+
+# Print the names of the created dataframes
+# print(ls(pattern = "ecom_"))
+
+# List all entity folders in the shoes_data directory
+entity_folders <- list.files("data_upload", full.names = TRUE)
+
+# Create a list to store data frames for each entity
+entity_data <- list()
+
+# Loop over each entity folder
+for (folder in entity_folders) {
+  # Extract the entity name from the folder path
+  entity_name <- basename(folder)
+  
+  # List all CSV files within the entity folder
+  csv_files <- list.files(folder, pattern = "\\.csv$", full.names = TRUE)
+  
+  # Read each CSV file and store it in a data frame
+  entity_df <- lapply(csv_files, read.csv)
+  
+  # Combine all data frames into a single data frame
+  entity_df <- do.call(rbind, entity_df)
+  
+  # Assign the data frame to the list with the entity name as the key
+  entity_data[[paste0("ecom_", entity_name)]] <- entity_df
+}
+
+# Data Validation
+
+# Function to check email format
+check_email_format <- function(email) {
+  valid.email <- grepl("^[A-Za-z0-9._&%+-]+@[A-Za-z0-9.-]+\\.com$", email)
+  return(valid.email)
+}
+
+# Function to check phone number format
+check_phone_format <- function(phone) {
+  valid.phone <- grepl("^044-\\d{11}$", phone)
+  return(valid.phone)
+}
+
+# Function to check phone number format for seller
+check_phone_format_seller <- function(phone) {
+  valid.phone.seller <- grepl("^44-\\d{11}$", phone)
+  return(valid.phone.seller)
+}
+
+# Function to card number format
+check_card_format <- function(date){
+  valid.date <- grepl("^\\d{16}$", date)
+  return(valid.date)
+}
+
+# Function to check for null names
+check_names_not_null <- function(first_name, last_name) {
+  return(!is.na(first_name) && nchar(trimws(first_name)) > 0 &&
+           !is.na(last_name) && nchar(trimws(last_name)) > 0)
+}
+
+# Function to check for null names
+check_names_not_null.s <- function(catname) {
+  return(!is.na(catname) && nchar(trimws(catname)) > 0)
+}
+
+# Function to check for characters in names
+check_names_only_chars <- function(names_vector) {
+  valid_names <- grepl("^[A-Za-z]+$", names_vector)
+  return(valid_names)
+}
+
+# Function to check for duplicate ids
+check_id <- function(ids, data) {
+  if (length(unique(ids)) != nrow(data)) {
+    return(TRUE)  # Return TRUE if duplicate IDs are found
+  }
+  else {
+    return(NULL)
+  }
+}
+
+# Function to check date
+check_date_format <- function(date){
+  valid.date <- grepl("^\\d{4}-\\d{2}-\\d{2}$", date)
+  return(valid.date)
+}
+
+# Function to check value range
+check_range <- function(value, min_value, max_value) {
+  return(value >= min_value & value <= max_value)
+}
+
+# Customer 
+# Email 
+email_validity.customer <- sapply(ecom_customer_data$email, check_email_format)
+# Phone number validation
+phone_validity.customer <- sapply(ecom_customer_data$contact_number, check_phone_format)
+# Card number validation
+card_validity.customer <- sapply(ecom_customer_data$card_number, check_card_format)
+# Name validation
+name_validity.customer <- sapply(1:length(ecom_customer_data$first_name), function(i) {
+  check_names_not_null(ecom_customer_data$first_name[i], ecom_customer_data$last_name[i])
+})
+
+# Category
+# name not null
+catname_validity.category <- sapply(ecom_category_data$category_name, check_names_not_null.s)
+# desc check
+catdesc_validity.category <- nchar(ecom_category_data$category_description) < 50
+
+# Promotion
+# check discount code
+pattern <- "[A-Z]{2}\\d{2}"
+invalid.discount.codes <- sapply(ecom_promotion_data$promotion_id, grepl, pattern)
+# check discount
+discount.validate.promotion <- ecom_promotion_data$promotion_price < 0.1 | ecom_promotion_data$promotion_price > 1.0
+
+# Seller
+# Email
+email_validity.seller <- sapply(ecom_seller_data$email, check_email_format)
+# Phone number validation
+phone_validity.seller <- sapply(ecom_seller_data$contact, check_phone_format_seller)
+
+# Review
+# check score
+revscore.validate.review <- ecom_review$review_score >= 1 | ecom_review$review_score <= 5
+
+# Order
+# date format
+date_validity.order <- sapply(ecom_order_data$order_date, check_date_format)
+# check quantity
+quantity.validate.ord <- ecom_order_data$quantity >= 1 | ecom_order_data$quantity <= 10
+# product id
+prodname_validity.ord <- sapply(ecom_order_data$product_id, check_names_not_null.s)
+
+# Product
+# Product name not null
+proname_validity.prod <- sapply(ecom_product_data$product_name, check_names_not_null.s)
+proname_validity.prod.l <- nchar(ecom_product_data$product_name) < 50
+proname_validity.prod.desc <- nchar(ecom_product_data$product_description) < 100
+# brand name not null
+probrand_validity.prod <- sapply(ecom_product_data$brand, check_names_not_null.s)
+# price quantity
+prodprice_validity.prod <- ecom_product_data$price <= 10000
+# date format
+prodate_validity.prod <- sapply(ecom_product_data$registration_date, check_date_format)
+
+# Shipping
+valid_status <- c("In-Transit", "Shipped", "Delivered", "Out for Delivery")
+# Check the pattern for each value in the 'Status' column
+invalid_statuses <- ecom_shipping$shipment_status %in% valid_status
+
+# Subcategory
+# name not null
+name_validity.subcat <- sapply(ecom_sub_category_data$sub_category_name, check_names_not_null.s)
+
+# Address
+pattern.postcode <- "^.{3} .{3}$"
+invalid.post.codes <- sapply(ecom_address_data$postal_code, grepl, pattern.postcode)
+
+# Append Data into Database
+
+# db connection
+my_db <- RSQLite::dbConnect(RSQLite::SQLite(), db_file_path)
+
+# Write to customer
+invalid_rows_cust <- !(all(email_validity.customer) & all(phone_validity.customer) & all(card_validity.customer) & all(name_validity.customer))
+if (!all(invalid_rows_cust)) {
+  # Read existing primary keys from the database
+  existing_keys_cust <- dbGetQuery(my_db, "SELECT customer_id FROM customer")
+  
+  # Extract primary keys from your dataframe
+  new_keys <- ecom_customer_data$customer_id 
+  
+  # Identify new records by comparing primary keys
+  new_records_cust <- ecom_customer_data[!new_keys %in% existing_keys_cust$customer_id, ]
+  
+  # Insert new records into the database
+  dbWriteTable(my_db, "customer", new_records_cust, append = TRUE, row.names = FALSE)
+  print("Done")
+} else {
+  # Remove rows with failed data validation
+  ecom_cust_valid <- ecom_customer_data[!invalid_rows_cust, ]
+  # Insert valid records into the database
+  dbWriteTable(my_db, "customer", ecom_cust_valid, append = TRUE, row.names = FALSE)
+  print("Done. Some rows were skipped due to failed validation.")
+}
+# Write to category
+invalid_rows_cat <- !(all(catname_validity.category) & all(catdesc_validity.category))
+if (!all(invalid_rows_cat)) {
+  # Read existing primary keys from the database
+  existing_keys_cat <- dbGetQuery(my_db, "SELECT category_id FROM category")
+  
+  # Extract primary keys from your dataframe
+  new_keys_cat <- ecom_category_data$category_id 
+  
+  # Identify new records by comparing primary keys
+  new_records_cat <- ecom_category_data[!new_keys_cat %in% existing_keys_cat$category_id, ]
+  
+  # Insert new records into the database
+  dbWriteTable(my_db, "category", new_records_cat, append = TRUE, row.names = FALSE)
+  print("Done")
+} else {
+  # Remove rows with failed data validation
+  ecom_cat_valid <- ecom_category_data[!invalid_rows_cat, ]
+  # Insert valid records into the database
+  dbWriteTable(my_db, "category", ecom_cat_valid, append = TRUE, row.names = FALSE)
+  print("Done. Some rows were skipped due to failed validation.")
+}
+
+# Write to product
+invalid_rows_prod <- !(all(proname_validity.prod) & all(proname_validity.prod.l) & all(proname_validity.prod.desc) & all(probrand_validity.prod)
+                       & all(prodprice_validity.prod) & all(prodate_validity.prod))
+if (!any(invalid_rows_prod)) {
+  # Read existing primary keys from the database
+  existing_keys_prod <- dbGetQuery(my_db, "SELECT product_id FROM product")
+  
+  # Extract primary keys from your dataframe
+  new_keys_prod <- ecom_product_data$product_id 
+  
+  # Identify new records by comparing primary keys
+  new_records_prod <- ecom_product_data[!new_keys_prod %in% existing_keys_prod$product_id, ]
+  
+  # Insert new records into the database
+  dbWriteTable(my_db, "product", new_records_prod, append = TRUE, row.names = FALSE)
+  print("Done")
+} else {
+  # Remove rows with failed data validation
+  ecom_prod_valid <- ecom_product_data[!invalid_rows_prod, ]
+  # Insert valid records into the database
+  dbWriteTable(my_db, "product", ecom_prod_valid, append = TRUE, row.names = FALSE)
+  print("Done. Some rows were skipped due to failed validation.")
+}
+
+# Write to promotion
+invalid_rows_promo <- !(all(invalid.discount.codes) & all(discount.validate.promotion))
+if (!any(invalid_rows_promo)) {
+  # Read existing primary keys from the database
+  existing_keys_promo <- dbGetQuery(my_db, "SELECT promotion_id FROM promotion")
+  
+  # Extract primary keys from your dataframe
+  new_keys_promo <- ecom_promotion_data$promotion_id 
+  
+  # Identify new records by comparing primary keys
+  new_records_promo <- ecom_promotion_data[!new_keys_promo %in% existing_keys_promo$promotion_id, ]
+  
+  # Insert new records into the database
+  dbWriteTable(my_db, "promotion", new_records_promo, append = TRUE, row.names = FALSE)
+  print("Done")
+} else {
+  # Remove rows with failed data validation
+  ecom_promo_valid <- ecom_promotion_data[!invalid_rows_promo, ]
+  # Insert valid records into the database
+  dbWriteTable(my_db, "promotion", ecom_promo_valid, append = TRUE, row.names = FALSE)
+  print("Done. Some rows were skipped due to failed validation.")
+}
+
+# Write to address
+invalid_rows_addr <- !(all(invalid.post.codes))
+if (!any(invalid_rows_addr)) {
+  # Read existing primary keys from the database
+  existing_keys_addr <- dbGetQuery(my_db, "SELECT address_id FROM address")
+  
+  # Extract primary keys from your dataframe
+  new_keys_addr <- ecom_address_data$address_id 
+  
+  # Identify new records by comparing primary keys
+  new_records_addr <- ecom_address_data[!new_keys_addr %in% existing_keys_addr$address_id, ]
+  
+  # Insert new records into the database
+  dbWriteTable(my_db, "address", new_records_addr, append = TRUE, row.names = FALSE)
+  print("Done")
+} else {
+  # Remove rows with failed data validation
+  ecom_addr_valid <- ecom_address_data[!invalid_rows_addr, ]
+  # Insert valid records into the database
+  dbWriteTable(my_db, "address", ecom_addr_valid, append = TRUE, row.names = FALSE)
+  print("Done. Some rows were skipped due to failed validation.")
+}
+
+# Write to shipping
+# Identify rows with failed data validation
+invalid_rows_ship <- !(all(email_validity.seller) & all(phone_validity.seller))
+if (!any(invalid_rows_ship)) {
+  # Read existing primary keys from the database
+  existing_keys_ship <- dbGetQuery(my_db, "SELECT shipping_id FROM shipping")
+  
+  # Extract primary keys from your dataframe
+  new_keys_ship <- ecom_shipping$shipping_id 
+  
+  # Identify new records by comparing primary keys
+  new_records_ship <- ecom_shipping[!new_keys_ship %in% existing_keys_ship$shipping_id, ]
+  
+  # Insert new records into the database
+  dbWriteTable(my_db, "shipping", new_records_ship, append = TRUE, row.names = FALSE)
+  print("Done")
+} else {
+  # Remove rows with failed data validation
+  ecom_shipping_valid <- ecom_shipping[!invalid_rows_ship, ]
+  
+  # Insert valid records into the database
+  dbWriteTable(my_db, "shipping", ecom_shipping_valid, append = TRUE, row.names = FALSE)
+  print("Done. Some rows were skipped due to failed validation.")
+}
+
+# Write to order
+invalid_rows_order <- !(all(date_validity.order) & all(quantity.validate.ord) & all(prodname_validity.ord))
+if (TRUE) {
+  # Read existing primary keys from the database
+  existing_keys_ord <- dbGetQuery(my_db, "SELECT order_id FROM `order`")
+  
+  # Extract primary keys from your dataframe
+  new_keys_ord <- ecom_order_data$order_id 
+  
+  # Identify new records by comparing primary keys
+  new_records_ord <- ecom_order_data[!new_keys_ord %in% existing_keys_ord$order_id, ]
+  
+  # Insert new records into the database
+  dbWriteTable(my_db, "order", new_records_ord, append = TRUE, row.names = FALSE)
+  print("Done")
+} else {
+  # Remove rows with failed data validation
+  ecom_ord_valid <- ecom_order_data[!invalid_rows_order, ]
+  # Insert valid records into the database
+  dbWriteTable(my_db, "order", ecom_ord_valid, append = TRUE, row.names = FALSE)
+  print("Done. Some rows were skipped due to failed validation.")
+}
+
+# Write to subcategory
+invalid_rows_subcat <- !(all(name_validity.subcat))
+if (!any(invalid_rows_subcat)) {
+  # Read existing primary keys from the database
+  existing_keys_subcat <- dbGetQuery(my_db, "SELECT sub_category_id FROM subcategory")
+  
+  # Extract primary keys from your dataframe
+  new_keys_subcat <- ecom_sub_category_data$sub_category_id 
+  
+  # Identify new records by comparing primary keys
+  new_records_subcat <- ecom_sub_category_data[!new_keys_subcat %in% existing_keys_subcat$sub_category_id, ]
+  
+  # Insert new records into the database
+  dbWriteTable(my_db, "subcategory", new_records_subcat, append = TRUE, row.names = FALSE)
+  print("Done")
+} else {
+  # Remove rows with failed data validation
+  ecom_subcat_valid <- ecom_sub_category_data[!invalid_rows_subcat, ]
+  # Insert valid records into the database
+  dbWriteTable(my_db, "subcategory", ecom_subcat_valid, append = TRUE, row.names = FALSE)
+  print("Done. Some rows were skipped due to failed validation.")
+}
+
+# Write to provide
+if (TRUE) {
+  # Read existing primary keys from the database
+  existing_keys_provide <- dbGetQuery(my_db, "SELECT provide_id FROM provide")
+  
+  # Extract primary keys from your dataframe
+  new_keys_provide <- ecom_provide_data$provide_id 
+  
+  # Identify new records by comparing primary keys
+  new_records_provide <- ecom_provide_data[!new_keys_provide %in% existing_keys_provide$provide_id, ]
+  
+  # Insert new records into the database
+  dbWriteTable(my_db, "provide", new_records_provide, append = TRUE, row.names = FALSE)
+  print("Done")
+} else {
+  print("Error: Provide validation failed.")
+}
+
+# Write to review
+invalid_rows_rev <- !(all(revscore.validate.review))
+if (!any(invalid_rows_rev)) {
+  # Read existing primary keys from the database
+  existing_keys_review <- dbGetQuery(my_db, "SELECT review_id FROM review")
+  
+  # Extract primary keys from your dataframe
+  new_keys_review <- ecom_review$review_id 
+  
+  # Identify new records by comparing primary keys
+  new_records_review <- ecom_review[!new_keys_review %in% existing_keys_review$review_id, ]
+  
+  # Insert new records into the database
+  dbWriteTable(my_db, "review", new_records_review, append = TRUE, row.names = FALSE)
+  print("Done")
+} else {
+  # Remove rows with failed data validation
+  ecom_rev_valid <- ecom_review[!invalid_rows_rev, ]
+  # Insert valid records into the database
+  dbWriteTable(my_db, "review", ecom_rev_valid, append = TRUE, row.names = FALSE)
+  print("Done. Some rows were skipped due to failed validation.")
+}
+
+# Write to seller
+# Identify rows with failed data validation
+invalid_rows_seller <- !(all(email_validity.seller) & all(phone_validity.seller))
+if (!any(invalid_rows_seller)) {
+  # Read existing primary keys from the database
+  existing_keys_seller <- dbGetQuery(my_db, "SELECT seller_id FROM seller")
+  
+  # Extract primary keys from your dataframe
+  new_keys_seller <- ecom_seller_data$seller_id 
+  
+  # Identify new records by comparing primary keys
+  new_records_seller <- ecom_seller_data[!new_keys_seller %in% existing_keys_seller$seller_id, ]
+  
+  # Insert new records into the database
+  dbWriteTable(my_db, "seller", new_records_seller, append = TRUE, row.names = FALSE)
+  print("Done")
+} else {
+  # Remove rows with failed data validation
+  ecom_seller_valid <- ecom_seller_data[!invalid_rows_seller, ]
+  # Insert valid records into the database
+  dbWriteTable(my_db, "seller", ecom_seller_valid, append = TRUE, row.names = FALSE)
+  print("Done. Some rows were skipped due to failed validation.")
+}
+
+# Write to transaction_billing
+if (TRUE) {
+  # Read existing primary keys from the database
+  existing_keys_tb <- dbGetQuery(my_db, "SELECT billing_id FROM transaction_billing")
+  
+  # Extract primary keys from your dataframe
+  new_keys_tb <- ecom_transaction_billing_data$billing_id 
+  
+  # Identify new records by comparing primary keys
+  new_records_tb <- ecom_transaction_billing_data[!new_keys_tb %in% existing_keys_tb$billing_id, ]
+  
+  # Insert new records into the database
+  dbWriteTable(my_db, "transaction_billing", new_records_tb, append = TRUE, row.names = FALSE)
+  print("Done")
+} else {
+  print("Error: transaction_billing validation failed.")
+}
+
+# Data Analysis 
 
 # Ensure figures directory exists
 if (!dir.exists("figures")) {
@@ -17,7 +624,7 @@ if (!dir.exists("figures")) {
 # PART 1 - DATA ANALYSIS
 
 # Function to generate filename with date-time suffix
-  generate_filename <- function(prefix) {
+generate_filename <- function(prefix) {
   today_date <- as.character(Sys.Date())
   current_time <- format(Sys.time(), format = "%H_%M_%S")
   filename <- paste0("figures/", prefix, "_", today_date, "_", current_time, ".csv")
@@ -137,9 +744,9 @@ write.csv(result6, generate_filename("category_wise_sales"), row.names = FALSE)
 # SQL Queries
 sales_query <- " SELECT 
                   customer.customer_id, city, country, quantity, 
-                  shipping.shipment_status, price, brand, subcategory.subcategory_name, 
+                  shipping.shipment_status, price, brand, subcategory.sub_category_name, 
                   review_score, category.category_name, product_name, product.product_id, 
-                  promo_price, order_date
+                  promotion_price, order_date
                 FROM customer
                 INNER JOIN address ON customer.customer_id = address.customer_id
                 INNER JOIN `order`ON customer.customer_id = `order`.customer_id
@@ -161,14 +768,14 @@ seller_query <- " SELECT
                   LEFT JOIN category
                   ON product.category_id = category.category_id
                   LEFT JOIN review
-                  ON product.product_id = review.product_w_category$product_id"
+                  ON product.product_id = review.product_id"
 
 # Data Extraction
 sales_analysis <- dbGetQuery(my_db, sales_query)
 seller <- dbGetQuery(my_db, seller_query)
 
 # Sales Data Generation
-sales_data <- sales_analysis %>% mutate(sales_amount = price * quantity * ifelse(is.na(promo_price), 1, promo_price)) 
+sales_data <- sales_analysis %>% mutate(sales_amount = price * quantity * ifelse(is.na(promotion_price), 1, promotion_price)) 
 
 # Sales Trend by Category
 # The average amount of sales by each category is 75,443.85 pounds. Amongst 10 product categories, the sales amount of automotive, 
@@ -178,11 +785,11 @@ category_sales <- sales_data %>% group_by(category_name) %>% summarise(sales_amo
 viz1 <- ggplot(category_sales, aes(x = sales_amount, 
                                    y = reorder(category_name, sales_amount), 
                                    fill = sales_amount)) + 
-        geom_col() + 
-        geom_vline(aes(xintercept = mean(category_sales$sales_amount), color = "mean"), linetype = "dashed") +
-        scale_color_manual(name = " ", values = c(mean = "red")) +
-        labs(title = "Sales amount by Category", x = "Sales amount", y = "Category") +
-        theme_classic()
+  geom_col() + 
+  geom_vline(aes(xintercept = mean(category_sales$sales_amount), color = "mean"), linetype = "dashed") +
+  scale_color_manual(name = " ", values = c(mean = "red")) +
+  labs(title = "Sales amount by Category", x = "Sales amount", y = "Category") +
+  theme_classic()
 
 # Save the plot with a timestamp
 this_filename_date <- as.character(Sys.Date())
@@ -198,8 +805,8 @@ ggsave(filename = paste0("figures/sales_trend_by_category_", this_filename_date,
 top_query <- "SELECT 
                 cat.category_id AS parent_category_id,
                 cat.category_name AS parent_category_name,
-                sub.subcategory_id,
-                sub.subcategory_name,
+                sub.sub_category_id,
+                sub.sub_category_name,
                 COUNT(ord.quantity) AS total_sold_units
               FROM `order` ord
               JOIN product prod ON ord.product_id = prod.product_id
@@ -261,28 +868,31 @@ this_filename_time <- format(Sys.time(), format = "%H_%M")
 ggsave(filename = paste0("figures/sales_by_country_", this_filename_date, "_", this_filename_time, ".png"), plot = viz4, device = "png", width = 10, height = 7)
 
 # Sales amount by reviews
-# A higher review score did not mean the high amount of sales. As shown in the plot, clothing had the sales amount below the average sales by category, 
-# however, home & garden which had slightly less review score than clothing showed better sales performance. Automotive had the least review score, 
-# but displayed the sales greater than the average sales by category.
-viz5 <- sales_data %>% 
-  group_by(category_name) %>% 
-  summarise(average_review_score = mean(review_score), sales_amount = sum(sales_amount)) %>% 
-  mutate(color = case_when(sales_amount > mean(category_sales$sales_amount) ~ "1. Over the average sales by category", 
-                           sales_amount < mean(category_sales$sales_amount) ~ "2. Below the average sales by category")) %>%
-  ggplot(aes(x = average_review_score, 
-             y = reorder(category_name, average_review_score), 
-             color = color, 
-             fill = color)) + 
+viz5 <- sales_data %>%
+  group_by(category_name) %>%
+  summarise(average_review_score = mean(review_score),
+            sales_amount = sum(sales_amount)) %>%
+  mutate(color = ifelse(sales_amount > mean(sales_amount),
+                        "1. Over the average sales by category",
+                        "2. Below the average sales by category")) %>%
+  ggplot(aes(x = average_review_score,
+             y = reorder(category_name, average_review_score),
+             color = color)) +
   geom_point(size = 4) +
-  geom_col(width = 0.01) + 
-  labs(title = "Category by reviews", subtitle = "(Average sales by category = 75,444 pounds)", 
+  geom_col(aes(fill = color), width = 0.01) +
+  scale_fill_manual(values = c("1. Over the average sales by category" = "blue",
+                               "2. Below the average sales by category" = "red")) +
+  scale_color_manual(values = c("1. Over the average sales by category" = "blue",
+                                "2. Below the average sales by category" = "red")) +
+  labs(title = "Category by reviews", subtitle = "(Average sales by category = 75,444 pounds)",
        x = "Average review score", y = "Category") +
   theme_classic()
 
 # Save the plot with a timestamp
 this_filename_date <- as.character(Sys.Date())
 this_filename_time <- format(Sys.time(), format = "%H_%M")
-ggsave(filename = paste0("figures/category_by_review_", this_filename_date, "_", this_filename_time, ".png"), plot = viz5, device = "png", width = 10, height = 7)
+ggsave(filename = paste0("figures/category_by_review_", this_filename_date, "_", this_filename_time, ".png"),
+       plot = viz5, device = "png", width = 10, height = 7)
 
 # Sales trend by date
 # The sales shows the increasing trend over time from 2023 
@@ -337,16 +947,23 @@ sales_category_query <- "SELECT
 sales_category_data <- dbGetQuery(my_db, sales_category_query)
 sales_category_data$order_date <- as.Date(sales_category_data$order_date)
 
-viz8 <- ggplot(sales_category_data, aes(x = order_date, y = units_sold, color = category_name)) +
-  geom_line() +
-  labs(x = "Order Date", y = "Units Sold", title = "Units Sold by Category Across Time") +
-  scale_color_discrete(name = "Category") +
-  facet_wrap(~ category_name, scales = "free_y", ncol = 2)
-
-# Save the plot with a timestamp
-this_filename_date <- as.character(Sys.Date())
-this_filename_time <- format(Sys.time(), format = "%H_%M")
-ggsave(filename = paste0("figures/unit_sold_by_category_", this_filename_date, "_", this_filename_time, ".png"), plot = viz8, device = "png", width = 10, height = 7)
+# Check if the data contains at least one non-null value for the faceting variable
+if (any(!is.na(sales_category_data$category_name))) {
+  # Create the plot only if the faceting variable has at least one non-null value
+  viz8 <- ggplot(sales_category_data, aes(x = order_date, y = units_sold, color = category_name)) +
+    geom_line() +
+    labs(x = "Order Date", y = "Units Sold", title = "Units Sold by Category Across Time") +
+    scale_color_discrete(name = "Category") +
+    facet_wrap(~ category_name, scales = "free_y", ncol = 2)
+  
+  # Save the plot with a timestamp
+  this_filename_date <- as.character(Sys.Date())
+  this_filename_time <- format(Sys.time(), format = "%H_%M")
+  ggsave(filename = paste0("figures/unit_sold_by_category_", this_filename_date, "_", this_filename_time, ".png"), 
+         plot = viz8, device = "png", width = 10, height = 7)
+} else {
+  print("Faceting variable has no valid values.")
+}
 
 # Price Distribution
 price_distribution_query <- "SELECT
@@ -363,7 +980,7 @@ price_distribution_query <- "SELECT
                               WHEN price BETWEEN 900 AND 999 THEN '900-999'
                               ELSE '1000+' END AS price_range,
                               COUNT(*) AS product_count
-                              FROM product_data
+                              FROM product
                               GROUP BY price_range
                               ORDER BY price_range"
 
@@ -405,9 +1022,5 @@ this_filename_date <- as.character(Sys.Date())
 this_filename_time <- format(Sys.time(), format = "%H_%M")
 ggsave(filename = paste0("figures/number_of_customer_each_city_", this_filename_date, "_", this_filename_time, ".png"), plot = viz10, device = "png", width = 10, height = 7)
 
-
 # Disconnect from the database
 dbDisconnect(my_db)
-
-
-
