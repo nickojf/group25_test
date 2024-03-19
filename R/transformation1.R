@@ -169,7 +169,12 @@ for (entity_folder in subdirectories) {
   # Iterate through each CSV file
   for (csv_file in csv_files) {
     # Read the CSV file into a dataframe
-    df <- read_csv(csv_file)
+    df <- read_csv(csv_file, col_types = cols(
+      card_number = col_character() # Ensure card_number is read as character
+    ))
+    # Convert the 'card_number' column to character to ensure consistency
+    # Note: This line is redundant if 'col_types' is used as above but is necessary if automatic type detection is relied upon
+    df$card_number <- as.character(df$card_number)
     # Merge the dataframe with the existing merged dataframe
     if (is.null(merged_df)) {
       merged_df <- df
